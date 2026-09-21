@@ -8,7 +8,7 @@ const dateFormattedET = function(){
 const addLeadZero = function(numValue){
 	if(numValue < 10){
 		//numValue = '0' + numValue;
-		numValue = numValue.padStart(2, '0');
+		numValue = String(numValue).padStart(2, '0');
 	}
 	return String(numValue);
 }
