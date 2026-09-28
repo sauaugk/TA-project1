@@ -12,10 +12,9 @@ console.log('Päring: ' + req.url);
 let currentURL = url.parse(req.url, true);
 console.log('Parsituna: ' + currentURL.pathname);
 
-//hakkame erinevaid lehti jaokama -> routes 
-
+//hakkame erinevaid lehti jaotama -> routes 
+const textRef = "txt/vanasonad.txt";
 const dateTimeET = require ('./src/dateTimeET');
-//ctrl+c, et sulgeda puttys
 const pageHead = '<!DOCTYPE html>\n<html lang="et">\n<head>\n\t<meta charset="utf-8">\n\t<title>Kevin Sauaug, veevbiprogrammeerimine</title>\n</head>\n<body>\n';
 const pageBody = '\t<h1>Kevin Sauaug, veebiprogrammeerimine</h1>\n\t <p>See leht on loodud veebiprogrammeerimise kursusel <a href="https://www.tlu.ee">Tallinna Ülikoolis</a> ning ei sisalda tõsiseltvõetavat sisu!</p>\n\t<p>Esialgu tutvusime lihtsalt HTML keelega, peatselt programmeerime.</p>\n\t<hr>' + '\t<p>Tänane kuupäev: ' + dateTimeET.fullDate() + '</p>\n' + '\t<p>Praegune kellaaeg: ' + dateTimeET.fullTime() + '</p>\n' +'\t<hr>';
 const pageBanner= '<img src="veebiprogrammeerimine_2026_TA.png" alt="">';
@@ -25,23 +24,49 @@ if(currentURL.pathname === '/'){
     res.writeHead(200, {"Content-type": "text/html"});
 	res.write(pageHead);
 	res.write(pageBody);
+	res.write('<img src="tlu_logo.jpg" alt="">');
 	res.write(pageBanner);
 	res.write ('\n\t<ul>\n\t\t<li><a href="/vanasona">Tänane vanasõna</a></li>');
+	 res.write('\n\t\t<li><a href="/miks-tlu">Miks tulin TLÜ-sse õppima?</a></li>');
 	res.write ('\n\t</ul>')
 	res.write(pageFoot);
 	//res.write('Veeb läkski käima!');
 	return res.end();
 }
 
-else if (currentURL.pathname === '/vanasona'){
-	res.writeHead(200, {"Content-type": "text/html"});
+else if (currentURL.pathname === '/miks-tlu'){
+	res.writeHead(200, {"Content-type": "text/html; charset=utf-8"});
 	res.write(pageHead);
-	res.write('\t<h1>Eesti vanasõnad </h1>\n\t<p>Siin näed tänase päeva vanasõna.</p>\n\t<hr>')
-	res.write ('\n\t<p><a href="/">Tagasi avalehele </a></p>');
+	res.write('\t<h1>Miks tulin TLÜ-sse õppima?</h1>\n\t<p>Tulid Tallinna Ülikooli õppima, sest siinne tarkvara arenduse suund pakub põnevaid praktilisi oskusi ja arenguvõimalusi.</p>\n\t<hr>');
+	res.write('<img src="tlu_logo.jpg" alt="">');
+	res.write ('\n\t<p><a href="/">Tagasi avalehele</a></p>');
 	res.write(pageBanner);
 	res.write(pageFoot);
 	return res.end();
 }
+
+else if(currentURL.pathname === '/vanasona'){
+		res.writeHead(200, {"Content-type": "text/html"});
+		try {
+			const data = await fs.readFile(textRef, "utf8");
+			let folkWisdom = data.split(";");
+			res.write(pageHead);
+			res.write(pageBanner);
+			res.write('\t<h1>Eesti vanasõnad</h1>\n\t<p>Siin näed tänase päeva vanasõna.</p>');
+			res.write('\n\t<p>Tänane vanasõna on: ' + folkWisdom[Math.round(Math.random() * (folkWisdom.length - 1))] + '</p><hr>')
+			res.write('\n\t<p><a href="/">Tagasi avalehele</a></p>');
+			res.write(pageFoot);
+			return res.end();
+		} catch (err){
+			res.write(pageHead);
+			res.write(pageBanner);
+			res.write('\t<h1>Eesti vanasõnad</h1>\n\t<p>Siin näed tänase päeva vanasõna.</p>');
+			res.write('\n\t<p>Mida kahjuks ei leitud!</p><hr>')
+			res.write('\n\t<p><a href="/">Tagasi avalehele</a></p>');
+			res.write(pageFoot);
+			return res.end();
+		}
+	}
 
 else if(currentURL.pathname === '/veebiprogrammeerimine_2026_TA.png'){
 	//teeme pildi tegeliku asukoha programmile kättesaadavaks
@@ -55,6 +80,18 @@ else if(currentURL.pathname === '/veebiprogrammeerimine_2026_TA.png'){
 			return res.end ('Pilti ei leitud!');
 	}
 } 
+
+ else if(currentURL.pathname === '/tlu_logo.jpg'){
+        let picPath = path.join(__dirname, 'pic', 'tlu_logo.jpg');
+        try {
+            const data = await fs.readFile(picPath);
+            res.writeHead(200, {"Content-type": "image/jpeg"});
+            return res.end(data);
+        } catch(err){
+            res.writeHead(404, {"Content-type": "text/plain; charset=utf8"});
+            return res.end('TLÜ logo pilti ei leitud pic kaustast!');
+        }
+    } 
 
 else {
 	res.end('Viga 404, ei leisa sellist lehte!');
